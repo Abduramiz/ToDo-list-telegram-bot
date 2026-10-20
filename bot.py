@@ -24,7 +24,9 @@ def start(message):
         "/list — vazifalarni ko'rish\n"
         "/done 0 — vazifani bajarilgan qilish\n"
         "/del 0 — vazifani o'chirish"
+        "/stat len(list) - vazifani soni korish"
     )
+
     bot.reply_to(message, matn)
 
 
@@ -53,7 +55,6 @@ def royxatni_korsat(message):
 
     qatorlar = []
 
-
     for i, vazifa in enumerate(r):
         belgi = "✅" if vazifa["bajarildi"] else "⬜"
         qatorlar.append(f"#{i} {belgi} {vazifa['matn']}")
@@ -61,6 +62,9 @@ def royxatni_korsat(message):
 
     bot.reply_to(message, "\n".join(qatorlar))
 
+@bot.message_handler(commands=["stat"])
+def stat(message):
+    bot.reply_to(message, f"{len(royxat(message))}-list")
 
 
 @bot.message_handler(commands=["done"])
@@ -84,6 +88,7 @@ def done(message):
 
     r[idx]["bajarildi"] = True
     bot.reply_to(message, f"✅ #{idx} bajarildi!")
+
 
 
 @bot.message_handler(commands=["del"])
