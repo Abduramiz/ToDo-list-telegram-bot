@@ -11,7 +11,7 @@ royxatlar = {}
 
 
 def royxat(message):
-    with open("telegram_bot.json", 'w') as t:
+    with open("telegram_bot.json", 'a') as t:
         json.dump(royxatlar, t, indent=4)
     return royxatlar.setdefault(message.chat.id, [])
 
@@ -23,9 +23,9 @@ def start(message):
         "/add matn — vazifa qo'shish\n"
         "/list — vazifalarni ko'rish\n"
         "/done 0 — vazifani bajarilgan qilish\n"
-        "/del 0 — vazifani o'chirish"
-        "/stat len(list) - vazifani soni korish"
-        "/clear"
+        "/del 0 — vazifani o'chirish\n"
+        "/stat len(list) - vazifani soni korish\n"
+        "/clear ro'yaxt dan hama rejalar ni o'chiradi"
     )
 
     bot.reply_to(message, matn)
@@ -49,7 +49,7 @@ def add(message):
 def clear(message):
     if message.chat.id in royxatlar:
         royxatlar[message.chat.id] = []
-    bot.reply_to(message,f"royxat dan yama rejalar ochdi")
+    bot.reply_to(message,f"ro'yxat dan hama rejalar o'chdi")
 
 @bot.message_handler(commands=["list"])
 def royxatni_korsat(message):
@@ -126,6 +126,6 @@ def boshqa(message):
 
 
 
-if __name__ == "__main__":
-    print("Bot ishga tushdi!")
-    bot.infinity_polling()
+
+print("Bot ishga tushdi!")
+bot.infinity_polling()
