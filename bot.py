@@ -25,6 +25,7 @@ def start(message):
         "/done 0 — vazifani bajarilgan qilish\n"
         "/del 0 — vazifani o'chirish"
         "/stat len(list) - vazifani soni korish"
+        "/clear"
     )
 
     bot.reply_to(message, matn)
@@ -44,6 +45,11 @@ def add(message):
     idx = len(r) - 1
     bot.reply_to(message, f"✅ #{idx} qo'shildi: {matn}")
 
+@bot.message_handler(commands=["clear"])
+def clear(message):
+    if message.chat.id in royxatlar:
+        royxatlar[message.chat.id] = []
+    bot.reply_to(message,f"royxat dan yama rejalar ochdi")
 
 @bot.message_handler(commands=["list"])
 def royxatni_korsat(message):
