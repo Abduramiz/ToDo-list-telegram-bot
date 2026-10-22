@@ -1,131 +1,151 @@
-import telebot
-from config import TOKEN
-import json
-
-bot = telebot.TeleBot(TOKEN)
-
-# Har bir foydalanuvchining alohida vazifalar ro'yxati
-royxatlar = {}
-
-
-
-
-def royxat(message):
-    with open("telegram_bot.json", 'a') as t:
-        json.dump(royxatlar, t, indent=4)
-    return royxatlar.setdefault(message.chat.id, [])
-
-
-@bot.message_handler(commands=["start", "help"])
-def start(message):
-    matn = (
-        "📝 ToDo Bot\n\n"
-        "/add matn — vazifa qo'shish\n"
-        "/list — vazifalarni ko'rish\n"
-        "/done 0 — vazifani bajarilgan qilish\n"
-        "/del 0 — vazifani o'chirish\n"
-        "/stat len(list) - vazifani soni korish\n"
-        "/clear ro'yaxt dan hama rejalar ni o'chiradi"
-    )
-
-    bot.reply_to(message, matn)
-
-
-@bot.message_handler(commands=["add"])
-def add(message):
-    matn = message.text.partition(" ")[2].strip()
-
-    if not matn:
-        bot.reply_to(message, "Format: /add Dars qilish")
-        return
-
-    r = royxat(message)
-    r.append({"matn": matn, "bajarildi": False})
-
-    idx = len(r) - 1
-    bot.reply_to(message, f"✅ #{idx} qo'shildi: {matn}")
-
-@bot.message_handler(commands=["clear"])
-def clear(message):
-    if message.chat.id in royxatlar:
-        royxatlar[message.chat.id] = []
-    bot.reply_to(message,f"ro'yxat dan hama rejalar o'chdi")
-
-@bot.message_handler(commands=["list"])
-def royxatni_korsat(message):
-    r = royxat(message)
-
-    if not r:
-        bot.reply_to(message, "📭 Ro'yxat bo'sh. /add bilan vazifa qo'shing.")
-        return
-
-    qatorlar = []
-
-    for i, vazifa in enumerate(r):
-        belgi = "✅" if vazifa["bajarildi"] else "⬜"
-        qatorlar.append(f"#{i} {belgi} {vazifa['matn']}")
-
-
-    bot.reply_to(message, "\n".join(qatorlar))
-
-@bot.message_handler(commands=["stat"])
-def stat(message):
-    bot.reply_to(message, f"{len(royxat(message))}-list")
-
-
-@bot.message_handler(commands=["done"])
-def done(message):
-    qismlar = message.text.split(maxsplit=1)
-
-    if len(qismlar) != 2 or not qismlar[1].isdigit():
-        bot.reply_to(message, "Format: /done 0")
-        return
-
-    idx = int(qismlar[1])
-    r = royxat(message)
-
-    if idx >= len(r):
-        bot.reply_to(message, "❌ Bunday raqamli vazifa topilmadi.")
-        return
-
-    if r[idx]["bajarildi"]:
-        bot.reply_to(message, "Bu vazifa allaqachon bajarilgan ✅")
-        return
-
-    r[idx]["bajarildi"] = True
-    bot.reply_to(message, f"✅ #{idx} bajarildi!")
-
-
-
-@bot.message_handler(commands=["del"])
-def delete(message):
-    qismlar = message.text.split(maxsplit=1)
-
-    if len(qismlar) != 2 or not qismlar[1].isdigit():
-        bot.reply_to(message, "Format: /del 0")
-        return
-
-    idx = int(qismlar[1])
-    r = royxat(message)
-
-    if idx >= len(r):
-        bot.reply_to(message, "❌ Bunday raqamli vazifa topilmadi.")
-        return
-
-    ochirilgan = r.pop(idx)
-    bot.reply_to(
-        message,
-        f"🗑 O'chirildi: {ochirilgan['matn']}"
-    )
-
-
-@bot.message_handler(func=lambda message: True)
-def boshqa(message):
-    bot.reply_to(message, "Tushunmadim 🤔 Buyruqlar uchun /help yozing.")
-
-
-
-
-
-print("Bot ishga tushdi!")
-bot.infinity_polling()
+# from telebot import types
+# import telebot
+# from config import TOKEN
+# import json
+#
+# bot = telebot.TeleBot(TOKEN)
+#
+# # Har bir foydalanuvchining alohida vazifalar ro'yxati
+# royxatlar = {}
+#
+#
+#
+#
+# def royxat(message):
+#     with open("telegram_bot.json", 'w') as t:
+#         json.dump(royxatlar, t, indent=4)
+#     return royxatlar.setdefault(message.chat.id, [])
+#
+#
+# @bot.message_handler(commands=["start", "help"])
+# def start(message):
+#     ism = message.from_user.first_name
+#     matn = (
+#         bot.send_message(message.chat.id,
+#                 f"Salom, <b>{ism}</b>! 👋\nMen <i>Ustudy</i> Todo botiman.\nBuyruqlar: /help",
+#                          parse_mode="HTML"),
+#         "📝 ToDo Bot\n\n"
+#         "/add matn — vazifa qo'shish\n"
+#         "/list — vazifalarni ko'rish\n"
+#         "/done 0 — vazifani bajarilgan qilish\n"
+#         "/del 0 — vazifani o'chirish\n"
+#         "/stat len(list) - vazifani soni korish\n"
+#         "/clear ro'yaxt dan hama rejalar ni o'chiradi"
+#     )
+#
+#     bot.reply_to(message, matn)
+#
+#
+# def asosiy_menyu():
+#     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)   # resize — ixcham tugmalar
+#     markup.row("📅 qoshish", "📝 ro'yxat ni korish")        # 1-qator: 2 tugma
+#     markup.row("✅ vazifani bajarilgan qilish")                        # 2-qator
+#     markup.row("def vazifani ochirish")                        # 2-qator
+#     markup.row("stat nechta vazifani bor ligi")                        # 2-qator
+#     markup.row("clear hama vazifani ochiradi")                        # 2-qator
+#     return markup
+#
+#
+# @bot.message_handler(commands=["add"])
+# @bot.message_handler(func=lambda m: m.text == "📅 qoshish")
+# def add(message):
+#     matn = message.text.partition(" ")[2].strip()
+#
+#     if not matn:
+#         bot.reply_to(message, "Format: /add Dars qilish")
+#         return
+#
+#     r = royxat(message)
+#     r.append({"matn": matn, "bajarildi": False})
+#
+#     idx = len(r) - 1
+#     bot.reply_to(message, f"✅ #{idx} qo'shildi: {matn}")
+#
+# @bot.message_handler(commands=["clear"])
+# @bot.message_handler(func=lambda m: m.text == "clear hama vazifani ochiradi")
+# def clear(message):
+#     if message.chat.id in royxatlar:
+#         royxatlar[message.chat.id] = []
+#     bot.reply_to(message,f"ro'yxat dan hama rejalar o'chdi")
+#
+# @bot.message_handler(commands=["list"])
+# def royxatni_korsat(message):
+#     r = royxat(message)
+#
+#     if not r:
+#         bot.reply_to(message, "📭 Ro'yxat bo'sh. /add bilan vazifa qo'shing.")
+#         return
+#
+#     qatorlar = []
+#
+#     for i, vazifa in enumerate(r):
+#         belgi = "✅" if vazifa["bajarildi"] else "⬜"
+#         qatorlar.append(f"#{i} {belgi} {vazifa['matn']}")
+#
+#
+#     bot.reply_to(message, "\n".join(qatorlar))
+#
+# @bot.message_handler(commands=["stat"])
+# @bot.message_handler(func=lambda m: m.text == "stat nechta vazifani bor ligi")
+# def stat(message):
+#     bot.reply_to(message, f"{len(royxat(message))}-list")
+#
+#
+# @bot.message_handler(commands=["done"])
+# @bot.message_handler(func=lambda m: m.text == "✅ vazifani bajarilgan qilish")
+# def done(message):
+#     qismlar = message.text.split(maxsplit=1)
+#
+#     if len(qismlar) != 2 or not qismlar[1].isdigit():
+#         bot.reply_to(message, "Format: /done 0")
+#         return
+#
+#     idx = int(qismlar[1])
+#     r = royxat(message)
+#
+#     if idx >= len(r):
+#         bot.reply_to(message, "❌ Bunday raqamli vazifa topilmadi.")
+#         return
+#
+#     if r[idx]["bajarildi"]:
+#         bot.reply_to(message, "Bu vazifa allaqachon bajarilgan ✅")
+#         return
+#
+#     r[idx]["bajarildi"] = True
+#     bot.reply_to(message, f"✅ #{idx} bajarildi!")
+#
+#
+#
+# @bot.message_handler(commands=["del"])
+# @bot.message_handler(func=lambda m: m.text == "def vazifani ochirish")
+# def delete(message):
+#     qismlar = message.text.split(maxsplit=1)
+#
+#     if len(qismlar) != 2 or not qismlar[1].isdigit():
+#         bot.reply_to(message, "Format: /del 0")
+#         return
+#
+#     idx = int(qismlar[1])
+#     r = royxat(message)
+#
+#     if idx >= len(r):
+#         bot.reply_to(message, "❌ Bunday raqamli vazifa topilmadi.")
+#         return
+#
+#     ochirilgan = r.pop(idx)
+#     bot.reply_to(
+#         message,
+#         f"🗑 O'chirildi: {ochirilgan['matn']}"
+#     )
+#
+#
+# @bot.message_handler(func=lambda message: True)
+# def boshqa(message):
+#     bot.reply_to(message, "Tushunmadim 🤔 Buyruqlar uchun /help yozing.")
+#
+#
+#
+#
+#
+# print("Bot ishga tushdi!")
+# bot.infinity_polling()
